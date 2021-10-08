@@ -67,4 +67,26 @@ public class EventInfoDTO {
     void setTooLong(final boolean tooLong) {
         this.tooLong = tooLong;
     }
+
+    public void fillUpMissingTimeData(EventInfoDTO other){
+        if (this.startedAt != null){
+            this.finishedAt = other.finishedAt;
+        }
+        else if (this.finishedAt != null){
+            this.startedAt = other.startedAt;
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "EventInfoDTO {" +
+                "id='" + id + '\'' +
+                ", startedAt=" + startedAt +
+                ", finishedAt=" + finishedAt +
+                ", type='" + type + '\'' +
+                ", host='" + host + '\'' +
+                ", duration=" + duration +
+                ", tooLong=" + tooLong +
+                '}';
+    }
 }
