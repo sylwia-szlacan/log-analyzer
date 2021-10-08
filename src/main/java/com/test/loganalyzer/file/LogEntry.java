@@ -1,4 +1,4 @@
-package com.test.loganalyzer.json;
+package com.test.loganalyzer.file;
 
 import java.time.Instant;
 
