@@ -50,4 +50,12 @@ public class EntryToEventConverter {
         }
         return first;
     }
+
+    public List<Event> convertToEntities(List<EventInfoDTO> dtos){
+        return dtos.stream().map(this::convertToEntity).collect(Collectors.toList());
+    }
+
+    private Event convertToEntity(final EventInfoDTO dto) {
+        return new Event(dto.getId(), dto.getType(), dto.getHost(), dto.getDuration().toMillis(), dto.isTooLong());
+    }
 }

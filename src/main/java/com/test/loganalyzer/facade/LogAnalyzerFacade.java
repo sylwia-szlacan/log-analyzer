@@ -1,7 +1,9 @@
 package com.test.loganalyzer.facade;
 
 import com.test.loganalyzer.db.EntryToEventConverter;
+import com.test.loganalyzer.db.Event;
 import com.test.loganalyzer.db.EventInfoDTO;
+import com.test.loganalyzer.db.EventRepository;
 import com.test.loganalyzer.file.LogEntry;
 import com.test.loganalyzer.file.LogFileContentService;
 import org.slf4j.Logger;
@@ -15,10 +17,16 @@ import java.util.stream.Collectors;
 public class LogAnalyzerFacade {
 
     private static Logger log = LoggerFactory.getLogger(LogAnalyzerFacade.class);
-    LogFileContentService fileContentService;
+    private EntryToEventConverter converter;
 
-    LogAnalyzerFacade(final LogFileContentService fileContentService) {
+    private final LogFileContentService fileContentService;
+    private final EventRepository eventRepository;
+
+    LogAnalyzerFacade(final LogFileContentService fileContentService, final EventRepository eventRepository) {
         this.fileContentService = fileContentService;
+        this.eventRepository = eventRepository;
+
+        converter = new EntryToEventConverter();
     }
 
     public void analyzeLogs(String fileName) throws Exception {
@@ -26,15 +34,20 @@ public class LogAnalyzerFacade {
         List<LogEntry> logEntries = fileContentService.readFileContent(fileName);
 
         log.info("Processing file content of {} rows ", logEntries.size());
-        List<EventInfoDTO> result = compactLog(logEntries);
+        List<EventInfoDTO> events = compactLog(logEntries);
 
-        log.info("Content compacted to {} events", result.size());
-        result.forEach(e -> log.debug(e.toString()));
+        log.info("Content compacted to {} events - saving into database", events.size());
+        saveData(events);
 
+        log.info("Events in database: " + eventRepository.count());
+    }
+
+    private void saveData(final List<EventInfoDTO> eventInfos) {
+        List<Event> entities = converter.convertToEntities(eventInfos);
+        eventRepository.saveAll(entities);
     }
 
     private List<EventInfoDTO> compactLog(final List<LogEntry> logEntries) {
-        EntryToEventConverter converter = new EntryToEventConverter();
         return converter.convertEntriesToEventsMap(logEntries).values().stream().collect(Collectors.toList());
     }
 }
